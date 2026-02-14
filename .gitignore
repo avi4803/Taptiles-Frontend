@@ -19,6 +19,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+*.md
 
 # Environment variables
 .env
@@ -41,6 +42,7 @@ Thumbs.db
 
 # Tailwind build cache (if any)
 .cache/
+
 
 # Coverage reports
 coverage/
