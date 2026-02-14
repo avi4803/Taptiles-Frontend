@@ -5,63 +5,72 @@ const LoadingPage = ({ onComplete }) => {
     const [progress, setProgress] = useState(0);
     const [message, setMessage] = useState('Connecting tiles...');
 
-    // Mind-trick loader logic
+    // Real connection check logic
     useEffect(() => {
-        let interval;
+        let isMounted = true;
+        let pinger;
 
-        const updateProgress = () => {
+        // Visual progress ticker - moves slowly to 90% while waiting
+        const progressTicker = setInterval(() => {
             setProgress(prev => {
-                // If complete, stop
-                if (prev >= 100) {
-                    clearInterval(interval);
-                    if (onComplete) setTimeout(onComplete, 500);
-                    return 100;
-                }
-
-                // Logic for variable speed to trick the mind
-                let increment = 0;
-
-                // Phase 1: Fast start (0-70%) - feels responsive
-                if (prev < 70) {
-                    increment = Math.random() * 2 + 0.5; // Random jump 0.5 - 2.5%
-                }
-                // Phase 2: Slow middle "stuck" feeling (70-85%) - builds anticipation
-                else if (prev < 85) {
-                    increment = Math.random() * 0.2; // Tiny crawl
-                }
-                // Phase 3: Fast finish (85-99%) - release tension
-                else if (prev < 99) {
-                    increment = Math.random() * 1.5 + 0.5;
-                }
-
-                // Cap at 99.9 until forced completion
-                return Math.min(prev + increment, 99.9);
+                const target = 90;
+                if (prev >= target) return prev;
+                // Logarithmic slowdown
+                const remaining = target - prev;
+                return prev + (remaining * 0.05);
             });
+        }, 100);
+
+        const checkConnection = async () => {
+            try {
+                const socketUrl = import.meta.env.VITE_SOCKET_URL || window.location.origin;
+                console.log('Testing connection to:', socketUrl);
+
+                // Create a timeout for the fetch
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 7000);
+
+                // Ping the server (using HEAD to save bandwidth, no-cors to avoid opaque response issues crashing fetch in some envs, though we just need success)
+                // Use no-cors keps it simple, we just want to know if it connects.
+                await fetch(socketUrl, {
+                    method: 'GET', // GET is safer than HEAD for some servers/proxies
+                    signal: controller.signal,
+                    mode: 'no-cors'
+                });
+
+                clearTimeout(timeoutId);
+
+                if (isMounted) {
+                    clearInterval(progressTicker);
+                    setProgress(100);
+                    setMessage('Ready!');
+                    if (onComplete) setTimeout(onComplete, 500);
+                }
+            } catch (err) {
+                console.warn('Connection check failed:', err);
+                if (isMounted) {
+                    setMessage('Waking up server...');
+                    // Retry after delay
+                    pinger = setTimeout(checkConnection, 2000);
+                }
+            }
         };
 
-        // Run update loop every 100ms
-        interval = setInterval(updateProgress, 100);
-
-        // Force finish after 4.5 seconds (fallback to ensure it doesn't stick forever)
-        const timeout = setTimeout(() => {
-            setProgress(100);
-            clearInterval(interval);
-            if (onComplete) setTimeout(onComplete, 500);
-        }, 4500);
+        checkConnection();
 
         return () => {
-            clearInterval(interval);
-            clearTimeout(timeout);
+            isMounted = false;
+            clearInterval(progressTicker);
+            if (pinger) clearTimeout(pinger);
         };
     }, [onComplete]);
 
     // Message rotation based on progress milestones
     useEffect(() => {
-        if (progress < 30) setMessage('Connecting tiles...');
-        else if (progress < 60) setMessage('Syncing players...');
-        else if (progress < 85) setMessage('Preparing your canvas...');
-        else if (progress >= 100) setMessage('Ready!');
-        else setMessage('Almost there...');
+        if (progress < 30) setMessage('Initializing...');
+        else if (progress < 60) setMessage('Connecting to server...');
+        else if (progress < 90) setMessage('Waking up hamsters...');
+        else if (progress >= 100) setMessage('Connected!');
     }, [progress]);
 
     return (
