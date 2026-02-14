@@ -1,79 +1,264 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * useGameLogic Hook
+ * Manages the core game loop, tile interactions, and real-time updates
+ */
 
-const INITIAL_TIME = 300; // 5 minutes in seconds
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSocket } from './useSocket';
+import { useGame } from '../context/GameContext';
+import { SOCKET_EVENTS } from '../utils/constants';
 
-export const useGameLogic = (currentUsername = "You") => {
-    const [timeLeft, setTimeLeft] = useState(INITIAL_TIME);
+export const useGameLogic = () => {
+    const { currentGame } = useGame();
+    const { socket, on, emit, userData } = useSocket();
+    
+    // Game State
     const [gameState, setGameState] = useState('active'); // 'active', 'finished'
     
-    // Grid State Management
-    const [tiles, setTiles] = useState(() => Array.from({ length: 200 }, (_, i) => {
-        // Mocking some initial state visually (same pattern as before)
-        if (i === 0 || i === 5 || i === 20 || i === 21 || i === 22 || i === 51) return { id: i, status: 'user' };
-        if (i === 2 || i === 24 || i === 25 || i === 26 || i === 44) return { id: i, status: 'opponent-red', label: 'JD' };
-        if (i === 4 || i === 28 || i === 47 || i === 48 || i === 49) return { id: i, status: 'opponent-teal', label: 'AB' };
-        if (i === 11) return { id: i, status: 'opponent-amber', label: 'MK' };
-        
-        // Random scattering
-        const rand = Math.random();
-        if (rand > 0.95) return { id: i, status: 'user' };
-        if (rand > 0.92) return { id: i, status: 'opponent-teal', label: 'OP' };
-        
-        return { id: i, status: 'unclaimed' };
-    }));
+    // Calculate initial time left based on server endTime if available
+    const getInitialTime = () => {
+        if (currentGame?.endTime) {
+            const remaining = Math.max(0, Math.floor((currentGame.endTime - Date.now()) / 1000));
+            return remaining;
+        }
+        return currentGame?.duration ? currentGame.duration / 1000 : 300;
+    };
 
-    // Mock Leaderboard State
-    const [leaderboard, setLeaderboard] = useState([
-        { rank: 1, username: "PlayerAlpha", pts: 240, extra: "Level 42 Master", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuB7YF1gMoCbK9RyZi6exvPrFaZYq0ofGgwCDcQbcnFWomHQqIQia7BI1IRuuyU9WYEAa4_8F1GyLfeU78mVX-j5jLtficFtRgqc7DPEmuiqPuXG9xNeZMAl9GZueOkD-GnDxuBb2UfS3-KKyedM3eJj47QmgUvIDfd_ZITi4l3A9dYhG3QN2OVE-OKqX65f_w4_lbhKqOgW7Nv_-aNGSMSZMlQ3n8D2M_V4XrvrHhm_ay0ycElomuhbITU8foflRAtsNKWZoxBerBTb" },
-        { rank: 2, username: "PlayerBeta", pts: 210, extra: "Strategist", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuBT4Akxsr495GMoR8OiQ6ziwz_tlcFZgB3XXrn_HPDD07WK8qdia8KcWrVaClIsRpVFzkbGKzo7dSl1kDCI_JhAn0oh3Ia0QYquOHCuJlyLrgHlL2iOkwtAUdNW1Cclceps_F-5QKuvoSf_QMuXIfTlHFA0rCZnkVWx_X26VMWhsc_bxFWbQ5cpzEbF3r4TZiXLY4alNr3mMZdkzkK3NP_8blQCFSZ0b_52NhL7cn7nX-c6bYXA30Cbk3eut5H_OtRm9T8ekoOAeBV3" },
-        { rank: 3, username: "CharlieZ", pts: 198, extra: "Rusher", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuDH0Le9aopLy_FnK1tIINqjGu_CBN9N-5Ey074uhwCzV0vnLB1WIuhD5ZEOgivwoF4X2cQJquc18b-ATxlSAFgyR2V_qFGYMvsMlSkRqVCrBQMDQbsXywL3aFv9J_993LMbDxnhTfeNsAymIF85_BenTTr0K9W9mdTZf_Qc3PHfE6PPAVCTsPNcVhuwHLA5398lKr-3dtnTs4zOMGncE354Zjia-wF7yKomxhiuaVmxe9HxhPJJEnJN7UG4qsyV1ExatoL_hW80H-ot" },
-        // ... gaps handled in UI usually
-        { rank: 12, username: currentUsername, pts: 145, extra: "Rising Star", active: true, avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-2YF7a6rYfbSkbKB5CgJknPLs3LAtBqc5KvjSA6hDGNXUUNSVsUawBvW3ToXXmrGoCKYYW13-Vo30jgso6BG-vBQFBXMlJ5IyJ9d8ZvV19S_sjnX0F51TzzQXb_vVCqjqZ_I2iuxcaIyDeHXyidO6Xp3eaXNvPz0V1gIqo3iGztcZYYcsPnBB8tJlONX0S-DW41K5zMTJTHM0nfrGA27MPnybekCXszhINYTicUdRSW2p475FzQjU6tgyMgAES6NH-wJJBL0frGVr" },
-        { rank: 13, username: "DeltaForce", pts: 142, extra: "Novice", avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuBMHBqt_LfuwCKXZhaPHVU9e_5ndJzr9cDfC_dtt3_65i4_V2uv9ZzFTLEWi_r5BaAiwPsAtEkAfdOZEzY0_f6eKKRS5w18Q0qY5__I9tKqTXztEDcLeNkdZAs9WPB665jDCMJgjtud5zptcjN1tXYH7KPzIy6Tw32Kl1i4E5PWtNsH_0Aj9sxEXBG-lrC8Ku3fKFrOawIJpfBDdkcyradcvAiqGPv22xdQmol6j-MQzqG7Tbi9QuSVOVd1-oOrVKpNRJDv7KJ1VoNN" },
-    ]);
+    const [timeLeft, setTimeLeft] = useState(getInitialTime);
 
-    // Timer Logic
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            setGameState('finished');
-            return;
+    // Grid State
+    // Initialize with empty tiles based on grid size
+    const [tiles, setTiles] = useState(() => {
+        let total = 400; // Default
+        if (currentGame) {
+            if (currentGame.totalTiles) {
+                total = currentGame.totalTiles;
+            } else if (currentGame.gridSize) {
+                if (typeof currentGame.gridSize === 'object') {
+                    total = currentGame.gridSize.width * currentGame.gridSize.height;
+                } else if (typeof currentGame.gridSize === 'number') {
+                    total = currentGame.gridSize * currentGame.gridSize;
+                }
+            }
+        }
+        
+        console.log(`🧩 Initializing grid with ${total} tiles (Game: ${currentGame?.gameId})`);
+        
+        return Array.from({ length: total }, (_, i) => ({ 
+            id: i, 
+            status: 'unclaimed',
+            color: null,
+            label: null,
+            ownerId: null
+        }));
+    });
+
+    // Valid tile check
+    const isMyTile = (tile) => tile.ownerId === userData?.userId;
+
+    /**
+     * Handle Tile Click
+     */
+    const handleTileClick = useCallback((id) => {
+        // Debugging logs
+        console.log(`🖱️ Tile Clicked: ${id} | Game: ${currentGame?.gameId} | State: ${gameState} | Active: ${currentGame?.status}`);
+
+        if (!currentGame) return;
+        
+        // Allow clicking if local state is active OR backend state is active
+        // Sometimes sync might lag, but if user sees board, they should be able to click
+        if (gameState !== 'active' && currentGame.status !== 'active') {
+             console.warn('Click ignored: Game not active');
+             return;
         }
 
-        const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1);
-        }, 1000);
-
-        return () => clearInterval(timer);
-    }, [timeLeft]);
-
-    // Handle Tile Click
-    const handleTileClick = useCallback((id) => {
-        if (gameState !== 'active') return;
-
-        setTiles(prev => prev.map(tile => {
-            if (tile.id === id) {
-                // If unclaimed -> Claim ('user')
-                if (tile.status === 'unclaimed') {
-                    // Update leaderboard logic could go here
-                    return { ...tile, status: 'user' };
-                }
-                // If user owns it -> Unclaim (optional mechanic, or ensure can't unclaim others)
-                // For now, let's say clicking own tile does nothing or visual feedback
+        // Optimistic UI Update
+        setTiles(prev => {
+            const newTiles = [...prev];
+             // Only update if not already ours to avoid flicker/redraw
+            if (newTiles[id] && newTiles[id].ownerId !== userData?.userId) {
+                 newTiles[id] = {
+                    ...newTiles[id],
+                    status: 'user',
+                    color: userData?.color || '#ec4899', // Fallback color
+                    ownerId: userData?.userId,
+                    ownerId: userData?.userId,
+                    username: userData?.username,
+                    label: userData?.username?.substring(0, 2).toUpperCase()
+                };
             }
-            return tile;
-        }));
+            return newTiles;
+        });
         
-        // Update mock stats and sort
-        setLeaderboard(prev => {
-            const updated = prev.map(p => 
-                p.username === (currentUsername || "You") ? { ...p, pts: p.pts + 10 } : p
-            );
-            return updated.sort((a, b) => b.pts - a.pts).map((p, index) => ({ ...p, rank: index + 1 }));
+        emit('claimTile', { 
+            gameId: currentGame.gameId, 
+            tileId: id 
         });
 
-    }, [gameState]);
+    }, [currentGame, gameState, emit, userData]);
 
-    // Format time helper
+    /**
+     * Socket Event Listeners
+     */
+    useEffect(() => {
+        if (!socket || !currentGame) return;
+
+        // 1. Fetch initial tiles state
+        emit('getTiles', { gameId: currentGame.gameId });
+
+        // 2. Handle Initial Tiles Data
+        on('tilesData', (data) => {
+            if (data.gameId === currentGame.gameId && data.tiles) {
+                console.log('📥 Received initial tiles data:', Object.keys(data.tiles).length, 'tiles');
+                
+                setTiles(prev => {
+                    const newTiles = [...prev];
+                    // Handle both Array and Object (Map) response from Redis
+                    const tilesCollection = data.tiles;
+                    
+                    // If it's an object, iterate keys
+                    Object.values(tilesCollection).forEach(t => {
+                        const tId = t.tileId !== undefined ? t.tileId : t.id;
+                        if (newTiles[tId]) {
+                            newTiles[tId] = {
+                                ...newTiles[tId],
+                                status: t.ownerId === userData?.userId ? 'user' : 'opponent',
+                                color: t.color,
+                                ownerId: t.ownerId,
+                                label: t.username?.substring(0, 2).toUpperCase(),
+                                username: t.username
+                            };
+                        }
+                    });
+                    return newTiles;
+                });
+            }
+        });
+
+        // 3. Handle Batch Updates (Real-time)
+        on('batchUpdate', (data) => {
+            console.log('⚡ Received batch update:', data);
+            // Support both data.updates (new format) or direct array (legacy)
+            const updates = data.updates || data; 
+            
+            if (!Array.isArray(updates)) {
+                console.warn('⚠️ Batch update invalid format:', typeof data);
+                return;
+            }
+
+            setTiles(prev => {
+                const newTiles = [...prev];
+                let changed = false;
+                
+                updates.forEach(u => {
+                   // Ensure tileId is integer for array index
+                   const tId = parseInt(u.tileId);
+                   
+                   if (newTiles[tId]) {
+                        console.log(`🔄 Updating tile ${tId} -> Owner: ${u.username}`);
+                        newTiles[tId] = {
+                            ...newTiles[tId],
+                            status: u.userId === userData?.userId ? 'user' : 'opponent',
+                            color: u.color,
+                            ownerId: u.userId,
+                            username: u.username, // Store username
+                            label: u.username?.substring(0, 2).toUpperCase()
+                        };
+                        changed = true;
+                    } else {
+                        console.warn(`⚠️ Batch update for unknown tile: ${tId}`);
+                    }
+                });
+                
+                return changed ? newTiles : prev;
+            });
+        });
+
+        // 4. Handle Game Ended
+        on('gameEnded', (data) => {
+            if (data.gameId === currentGame.gameId) {
+                setGameState('finished');
+                setTimeLeft(0);
+                // We can also trigger the modal here or let the UI react to gameState === 'finished'
+            }
+        });
+
+        // 5. Sync Time if needed (optional 'timerSync' event could be added to backend)
+        
+    }, [socket, currentGame, emit, on, userData]);
+
+    // Derived Leaderboard (Calculate from tiles)
+    const leaderboard = useMemo(() => {
+        const scores = {};
+        
+        // 1. Initialize with current players
+        if (currentGame?.players) {
+            currentGame.players.forEach(p => {
+                scores[p.userId] = { 
+                    userId: p.userId,
+                    username: p.username, 
+                    color: p.color,
+                    avatar: p.avatar,
+                    pts: 0 
+                };
+            });
+        }
+
+        // 2. Sum up tiles and discover new players from tiles
+        tiles.forEach(t => {
+            if (t.ownerId) {
+                if (!scores[t.ownerId]) {
+                    // If player not in list (e.g. left game or incomplete list), create entry
+                    // We might not have full details, but we try our best
+                    scores[t.ownerId] = {
+                        userId: t.ownerId,
+                        username: t.username || `Player ${t.label || t.ownerId.slice(0,4)}`, // Fallback
+                        color: t.color,
+                        pts: 0
+                    };
+                }
+                scores[t.ownerId].pts += 10;
+            }
+        });
+
+        return Object.values(scores)
+            .sort((a, b) => b.pts - a.pts)
+            .map((p, i) => ({
+                rank: i + 1,
+                userId: p.userId,
+                username: p.username,
+                pts: p.pts,
+                avatar: p.avatar,
+                extra: 'Player',
+                color: p.color,
+                active: p.userId === userData?.userId
+            }));
+    }, [tiles, currentGame, userData]);
+
+    // Timer Logic - Syncs with real time
+    useEffect(() => {
+        if (gameState === 'finished') return;
+
+        const interval = setInterval(() => {
+            if (currentGame?.endTime) {
+                const remaining = Math.max(0, Math.floor((currentGame.endTime - Date.now()) / 1000));
+                setTimeLeft(remaining);
+                if (remaining <= 0) setGameState('finished');
+            } else {
+                // Fallback if no endTime (shouldn't happen in active game)
+                setTimeLeft(prev => {
+                    if (prev <= 0) {
+                        setGameState('finished');
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [currentGame, gameState]);
+
     const formattedTime = `${Math.floor(timeLeft / 60).toString().padStart(2, '0')}:${(timeLeft % 60).toString().padStart(2, '0')}`;
 
     return {

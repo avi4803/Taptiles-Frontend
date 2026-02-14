@@ -55,6 +55,7 @@ const LobbyPage = ({ onGameStart }) => {
     // Handle logout
     const handleLogout = () => {
         disconnect();
+        localStorage.removeItem('tapTileState');
         window.location.reload();
     };
 

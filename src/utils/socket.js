@@ -6,7 +6,7 @@
 import { io } from 'socket.io-client';
 
 // Backend server URL
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || window.location.origin;
 
 class SocketManager {
   constructor() {

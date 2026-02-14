@@ -10,7 +10,7 @@ import { useGameActions } from './useGameActions';
 import { SOCKET_EVENTS } from '../utils/constants';
 
 export const useGameLobby = () => {
-  const { socket, on, emit } = useSocket();
+  const { socket, on, emit, userData } = useSocket();
   const {
     availableGames,
     currentGame,
@@ -54,9 +54,12 @@ export const useGameLobby = () => {
         addGame(data.game);
         
         // Only join room if WE created it
-        // The check happens inside joinGameRoom or we check socket.id
-        // But for now, let's rely on the response
-        if (data.game.creatorId === socket.userId) {
+        // Check both userData.userId and socket.id to be safe
+        const isCreator = (userData?.userId && data.game.creatorId === userData.userId) || 
+                          (socket.id && data.game.creatorId === socket.id); // Fallback if backend used socket.id (it didn't, but safety)
+
+        if (isCreator) {
+           console.log('👍 We created this game, joining room locally...');
            joinGameRoom(data.game);
         }
         resetLoadingStates();

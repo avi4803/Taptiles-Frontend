@@ -1,7 +1,7 @@
 import React from 'react';
 import TileButton from './TileButton';
 
-const GameGrid = ({ tiles = [], onTileClick }) => {
+const GameGrid = ({ tiles = [], onTileClick, gridSize = 20 }) => {
     return (
         <div className="h-full w-full flex flex-col bg-slate-50 dark:bg-background-dark relative">
             {/* Background Grid Pattern Decoration - Fixed to viewport */}
@@ -11,12 +11,16 @@ const GameGrid = ({ tiles = [], onTileClick }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar">
                 <div className="min-h-full flex items-center justify-center p-4 md:p-6">
                     {/* The Game Board */}
-                    <div className="w-full max-w-5xl grid grid-cols-10 gap-1 md:gap-2 p-2 bg-white dark:bg-surface-dark rounded-2xl shadow-xl border border-slate-200 dark:border-white/5 relative z-10">
+                    <div
+                        className="w-full max-w-5xl grid gap-1 md:gap-2 p-2 bg-white dark:bg-surface-dark rounded-2xl shadow-xl border border-slate-200 dark:border-white/5 relative z-10"
+                        style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+                    >
                         {tiles.map(tile => (
                             <TileButton
                                 key={tile.id}
                                 status={tile.status}
                                 label={tile.label}
+                                color={tile.color}
                                 onClick={() => onTileClick && onTileClick(tile.id)}
                             />
                         ))}
