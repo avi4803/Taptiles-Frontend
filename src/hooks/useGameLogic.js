@@ -94,8 +94,19 @@ export const useGameLogic = () => {
             gameId: currentGame.gameId, 
             tileId: id 
         });
-
     }, [currentGame, gameState, emit, userData]);
+
+    // Check for "All Tiles Claimed" Game Over condition
+    useEffect(() => {
+        if (gameState === 'active' && tiles.length > 0) {
+            const allClaimed = tiles.every(t => t.ownerId !== null);
+            if (allClaimed) {
+                console.log('🏁 All tiles claimed! Ending game locally.');
+                setGameState('finished');
+                setTimeLeft(0);
+            }
+        }
+    }, [tiles, gameState]);
 
     /**
      * Socket Event Listeners
@@ -267,6 +278,7 @@ export const useGameLogic = () => {
         timeLeft,
         formattedTime,
         leaderboard,
-        gameState
+        gameState,
+        onlineUsers: useSocket().onlineUsers // Direct access
     };
 };

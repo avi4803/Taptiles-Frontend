@@ -9,6 +9,7 @@ import Modal from '../common/Modal';
 const CreateGameModal = ({ isOpen, onClose, onCreateGame, isCreating }) => {
     const [gridSize, setGridSize] = useState('20');
     const [maxPlayers, setMaxPlayers] = useState(4);
+    const [duration, setDuration] = useState(60); // Default 60s
     const [isInfinite, setIsInfinite] = useState(false);
 
     const handleSubmit = (e) => {
@@ -16,7 +17,8 @@ const CreateGameModal = ({ isOpen, onClose, onCreateGame, isCreating }) => {
 
         const gameConfig = {
             gridSize: parseInt(gridSize),
-            maxPlayers: isInfinite ? null : maxPlayers
+            maxPlayers: isInfinite ? null : maxPlayers,
+            duration: duration * 1000 // Convert to ms
         };
 
         onCreateGame(gameConfig);
@@ -48,24 +50,47 @@ const CreateGameModal = ({ isOpen, onClose, onCreateGame, isCreating }) => {
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Grid Size Selection */}
-                <div className="space-y-2">
-                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">
-                        Grid Size
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={gridSize}
-                            onChange={(e) => setGridSize(e.target.value)}
-                            className="w-full bg-[#1e1f35]/80 dark:bg-[#1e1f35]/80 border border-white/10 rounded-xl px-4 py-3 text-white dark:text-white appearance-none focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer hover:bg-[#1e1f35]"
-                            disabled={isCreating}
-                        >
-                            <option value="20">20x25 (Standard - 500 tiles)</option>
-                            <option value="30">30x30 (900 tiles)</option>
-                            <option value="40">40x40 (1600 tiles)</option>
-                            <option value="50">50x50 (2500 tiles)</option>
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                            <span className="material-icons-round">expand_more</span>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">
+                            Grid Size
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={gridSize}
+                                onChange={(e) => setGridSize(e.target.value)}
+                                className="w-full bg-[#1e1f35]/80 dark:bg-[#1e1f35]/80 border border-white/10 rounded-xl px-4 py-3 text-white dark:text-white appearance-none focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer hover:bg-[#1e1f35]"
+                                disabled={isCreating}
+                            >
+                                <option value="20">20x20 (400)</option>
+                                <option value="30">30x30 (900)</option>
+                                <option value="40">40x40 (1600)</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <span className="material-icons-round">expand_more</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="block text-xs font-bold uppercase tracking-wider text-gray-400 ml-1">
+                            Duration
+                        </label>
+                        <div className="relative">
+                            <select
+                                value={duration}
+                                onChange={(e) => setDuration(parseInt(e.target.value))}
+                                className="w-full bg-[#1e1f35]/80 dark:bg-[#1e1f35]/80 border border-white/10 rounded-xl px-4 py-3 text-white dark:text-white appearance-none focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all cursor-pointer hover:bg-[#1e1f35]"
+                                disabled={isCreating}
+                            >
+                                <option value="30">30 Seconds</option>
+                                <option value="60">1 Minute</option>
+                                <option value="120">2 Minutes</option>
+                                <option value="300">5 Minutes</option>
+                            </select>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                <span className="material-icons-round">expand_more</span>
+                            </div>
                         </div>
                     </div>
                 </div>

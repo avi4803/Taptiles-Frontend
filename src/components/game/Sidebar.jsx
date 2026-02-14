@@ -41,7 +41,7 @@ const LeaderboardItem = ({ rank, username, pts, active, avatar, extra }) => {
     );
 };
 
-const Sidebar = ({ leaderboard = [] }) => {
+const Sidebar = ({ leaderboard = [], stats = { claimed: 0, rate: 0, avg: 0 } }) => {
     return (
         <aside className="w-full h-full bg-surface-light dark:bg-surface-dark flex flex-col shrink-0 z-20">
             {/* Leaderboard Header */}
@@ -75,25 +75,25 @@ const Sidebar = ({ leaderboard = [] }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg border border-slate-200 dark:border-white/5">
                             <div className="text-xs text-slate-500 mb-1">Tiles Claimed</div>
-                            <div className="text-2xl font-bold font-mono text-primary">45</div>
+                            <div className="text-2xl font-bold font-mono text-primary">{stats.claimed}</div>
                             <div className="text-[10px] text-green-500 flex items-center mt-1">
-                                <span className="material-icons text-[10px] mr-0.5">arrow_upward</span> +3/min
+                                <span className="material-icons text-[10px] mr-0.5">arrow_upward</span> +{stats.rate}/min
                             </div>
                         </div>
                         <div className="bg-background-light dark:bg-background-dark p-3 rounded-lg border border-slate-200 dark:border-white/5">
-                            <div className="text-xs text-slate-500 mb-1">Speed</div>
-                            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">1.2<span className="text-sm font-sans font-normal text-slate-500 ml-1">s</span></div>
-                            <div className="text-[10px] text-slate-500 mt-1">Avg per tile</div>
+                            <div className="text-xs text-slate-500 mb-1">Score</div>
+                            <div className="text-2xl font-bold font-mono text-slate-900 dark:text-white">{stats.score}</div>
+                            {/* <div className="text-[10px] text-slate-500 mt-1">Avg per tile</div> */}
                         </div>
                     </div>
-                    {/* Progress Bar */}
+                    {/* Progress Bar - Dominance */}
                     <div className="mt-4">
                         <div className="flex justify-between text-[10px] uppercase font-bold text-slate-500 mb-1">
                             <span>Dominance</span>
-                            <span>12%</span>
+                            <span>{stats.dominance}%</span>
                         </div>
                         <div className="h-2 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-primary to-indigo-400 w-[12%] rounded-full shadow-glow"></div>
+                            <div className="h-full bg-gradient-to-r from-primary to-indigo-400 rounded-full shadow-glow" style={{ width: `${stats.dominance}%` }}></div>
                         </div>
                     </div>
                 </div>

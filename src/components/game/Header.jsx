@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Header = ({ username, time }) => {
+const Header = ({ username, time, onlineUsers }) => {
     return (
         <header className="h-16 border-b border-slate-200 dark:border-white/10 bg-surface-light dark:bg-surface-dark flex items-center justify-between px-6 z-20 shrink-0 shadow-sm relative">
             {/* Logo Area */}
@@ -21,6 +21,17 @@ const Header = ({ username, time }) => {
 
             {/* User & Settings */}
             <div className="w-1/4 flex justify-end items-center gap-4">
+                {/* Online Count */}
+                <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+                    </span>
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                        {onlineUsers || 0}
+                    </span>
+                </div>
+
                 <div className="flex items-center gap-3 pl-3 pr-4 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:bg-slate-200 dark:hover:bg-white/10 transition-colors cursor-pointer group">
                     <img alt="User Avatar" className="w-7 h-7 rounded-full shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBz7G8wfavvbdvV7JNU2-nUGAlybKrWyMEC_oJzqpEDuLc-IMEqp9PoegOzYnJmq5n2jceq2EKY82nP1lAD17nLuS2LczHH_YOqaeBPiTAiUExACXH7w-ykIQLzhZpKrUdBFvE3_b18Za4FqTrVD9RB5vUAM9jUAqPKG658b9wJScqfBE_BBDfdd4EK-Xp0fvZoy4jo3n9ik7rzvubUGsym8iUR5X7xJ1JuPxpsl3Hf0fKNtyM-AWp_5HkrZau-MrAt7dY8ot3jv3T1" />
                     <span className="text-sm font-medium group-hover:text-primary transition-colors text-slate-700 dark:text-slate-200">{username || 'PlayerName'}</span>
