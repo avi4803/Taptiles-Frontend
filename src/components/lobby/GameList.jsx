@@ -33,12 +33,12 @@ const GameList = ({ games, currentUserId, onJoinGame, onStartGame, onLeaveGame, 
                     Public Lobbies
                 </h3>
 
-                <div className="flex gap-2">
+                <div className="flex gap-2 relative">
                     {/* Refresh Button */}
                     <button
                         onClick={onRefresh}
                         disabled={isRefreshing}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+                        className="p-2 rounded-lg bg-black/5 dark:bg-white/10 text-gray-700 dark:text-gray-300 hover:bg-black/10 dark:hover:bg-white/20 transition-colors disabled:opacity-50"
                         title="Refresh"
                     >
                         <span className={`material-icons-round text-sm ${isRefreshing ? 'animate-spin' : ''}`}>
@@ -51,15 +51,18 @@ const GameList = ({ games, currentUserId, onJoinGame, onStartGame, onLeaveGame, 
                         <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
-                            className="p-2 pr-8 rounded-lg bg-white/5 hover:bg-white/10 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors appearance-none cursor-pointer text-sm font-medium border border-white/5"
+                            className="p-2 pl-3 pr-8 rounded-lg bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 transition-colors appearance-none cursor-pointer text-sm font-medium border border-gray-200 dark:border-white/10 outline-none focus:ring-1 focus:ring-primary/50"
                         >
-                            <option value="all">All Games</option>
-                            <option value="your">Your Games</option>
-                            <option value="public">Public Games</option>
+                            <option value="all" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">All Games</option>
+                            <option value="your" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Your Games</option>
+                            <option value="public" className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100">Public Games</option>
                         </select>
-                        <span className="material-icons-round text-sm absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-gray-600 dark:text-gray-400">
-                            expand_more
-                        </span>
+                        {/* Dropdown Arrow */}
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none flex items-center justify-center">
+                            <span className="material-icons-round text-sm text-gray-500 dark:text-gray-400">
+                                expand_more
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>

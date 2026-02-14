@@ -64,8 +64,8 @@ This project uses a **Decoupled Architecture**, hosting the frontend and backend
 ### **Speed vs. Storage Trade-off**
 One of the key engineering decisions was to store the **active game state entirely in Redis RAM**.
 -   **Advantage:** This allows for sub-millisecond read/write operations, crucial for a game where 10+ players might click 5 times a second.
--   **Trade-off:** High RAM usage per active game.
--   **Solution:** We implemented an async "flush" mechanism. Once a game ends, the final results are written to **MongoDB** for permanent storage, and the Redis keys are expired to free up memory.
+-   **Trade-off:** High RAM usage per active game.(until game ends)
+-   **Solution:** We implemented an async "flush" mechanism. Once a game ends, the final results are written to **MongoDB** for permanent storage, and the Redis keys are expired to free up memory.(future)
 
 ### **Optimistic UI Updates**
 To make the game feel "instant," the frontend updates the tile color immediately when you click it, without waiting for the server to confirm. If the server rejects the move (e.g., lag, someone else claimed it), the tile reverts. This makes the game feel incredibly snappy even on slower networks.

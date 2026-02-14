@@ -27,41 +27,72 @@ const JoinGamePanel = ({ onJoinClick, onQuickJoin }) => {
     };
 
     return (
-        <div className="glass-panel p-6 rounded-2xl flex-1 flex flex-col justify-center">
-            <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
-                Have a Code?
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                Enter the 6-digit lobby ID to join instantly.
-            </p>
-
-            {/* Quick Join Input */}
-            <div className="flex gap-2">
-                <input
-                    type="text"
-                    value={quickCode}
-                    onChange={handleInputChange}
-                    onKeyPress={handleKeyPress}
-                    placeholder="ABC123"
-                    maxLength={6}
-                    className="w-full bg-black/20 dark:bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-center font-mono text-lg tracking-widest uppercase placeholder-gray-600 dark:placeholder-gray-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-gray-900 dark:text-white"
-                />
-                <button
-                    onClick={handleQuickJoin}
-                    disabled={quickCode.length !== 6}
-                    className="px-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-900 dark:text-white"
-                >
-                    <span className="material-icons-round">arrow_forward</span>
-                </button>
+        <div className="glass-panel p-3 lg:p-6 rounded-xl lg:rounded-2xl flex-1 flex flex-col justify-center h-full">
+            {/* Mobile View: Compact Input */}
+            <div className="lg:hidden flex flex-col items-center w-full gap-2">
+                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-lg mb-1">
+                    <span className="material-icons-round text-white text-xl">login</span>
+                </div>
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                    Join Code
+                </h2>
+                <div className="flex gap-1 w-full max-w-[140px]">
+                    <input
+                        type="text"
+                        value={quickCode}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        placeholder="CODE"
+                        maxLength={6}
+                        className="w-full bg-black/20 dark:bg-black/20 border border-white/10 rounded px-2 py-1.5 text-center font-mono text-sm tracking-widest uppercase placeholder-white/30 focus:border-primary outline-none transition-all text-gray-900 dark:text-white"
+                    />
+                    <button
+                        onClick={handleQuickJoin}
+                        disabled={quickCode.length !== 6}
+                        className="px-2 bg-primary rounded hover:bg-primary/80 disabled:opacity-50 disabled:bg-white/5 transition-colors text-white flex items-center justify-center"
+                    >
+                        <span className="material-icons-round text-base">arrow_forward</span>
+                    </button>
+                </div>
             </div>
 
-            {/* Or use modal button */}
-            <button
-                onClick={onJoinClick}
-                className="mt-4 text-sm text-gray-500 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors text-center"
-            >
-                Or click here for more options
-            </button>
+            {/* Desktop View: Full Content */}
+            <div className="hidden lg:block w-full">
+                <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-white">
+                    Have a Code?
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                    Enter the 6-digit lobby ID to join instantly.
+                </p>
+
+                {/* Quick Join Input */}
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={quickCode}
+                        onChange={handleInputChange}
+                        onKeyPress={handleKeyPress}
+                        placeholder="ABC123"
+                        maxLength={6}
+                        className="w-full bg-black/20 dark:bg-black/20 border border-white/10 rounded-lg px-4 py-3 text-center font-mono text-lg tracking-widest uppercase placeholder-gray-600 dark:placeholder-gray-600 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all text-gray-900 dark:text-white"
+                    />
+                    <button
+                        onClick={handleQuickJoin}
+                        disabled={quickCode.length !== 6 || quickCode.length === 0}
+                        className="px-4 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 hover:border-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-gray-900 dark:text-white"
+                    >
+                        <span className="material-icons-round">arrow_forward</span>
+                    </button>
+                </div>
+
+                {/* Or use modal button */}
+                <button
+                    onClick={onJoinClick}
+                    className="mt-4 text-sm text-gray-500 dark:text-gray-500 hover:text-primary dark:hover:text-primary transition-colors text-center w-full"
+                >
+                    Or click here for more options
+                </button>
+            </div>
         </div>
     );
 };

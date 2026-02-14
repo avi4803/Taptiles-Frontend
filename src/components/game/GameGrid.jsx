@@ -27,14 +27,25 @@ const GameGrid = ({ tiles = [], onTileClick, gridSize = 20, onSurrender }) => {
             <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-grid-pattern"></div>
 
             {/* Scrollable Content Area */}
-            <div ref={containerRef} className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="min-h-full flex items-center justify-center p-4 md:p-6">
+            <div ref={containerRef} className="flex-1 overflow-auto relative [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                {/* Center Button Overlay */}
+                <button
+                    onClick={handleCenter}
+                    className="sticky top-4 left-[calc(100%-3rem)] z-50 p-3 bg-white/10 dark:bg-black/30 backdrop-blur-md border border-white/20 dark:border-white/10 rounded-xl text-slate-700 dark:text-white hover:bg-white/20 dark:hover:bg-black/50 transition-all shadow-lg"
+                    title="Center Map"
+                >
+                    <span className="material-icons-round">zoom_out_map</span>
+                </button>
+
+                <div className="min-h-full min-w-fit flex items-center justify-center p-4 md:p-6">
                     {/* The Game Board */}
                     <div
-                        className="w-full max-w-5xl grid gap-1 md:gap-2 p-2 bg-white dark:bg-surface-dark rounded-2xl shadow-xl border border-slate-200 dark:border-white/5 relative z-10"
-                        style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
+                        className="grid gap-[2px] md:gap-2 p-2 bg-white dark:bg-surface-dark rounded-xl shadow-2xl border border-slate-200 dark:border-white/5 relative z-10 mx-auto transition-transform duration-200"
+                        style={{
+                            gridTemplateColumns: `repeat(${gridSize}, minmax(40px, 1fr))`
+                        }}
                     >
-                        {tiles.map(tile => (
+                        {tiles.map((tile) => (
                             <TileButton
                                 key={tile.id}
                                 status={tile.status}
@@ -44,27 +55,6 @@ const GameGrid = ({ tiles = [], onTileClick, gridSize = 20, onSurrender }) => {
                             />
                         ))}
                     </div>
-                </div>
-            </div>
-
-            {/* Quick Action Floating Bar - Sticky at bottom */}
-            <div className="sticky bottom-0 left-0 right-0 flex justify-center py-4 pointer-events-none z-20">
-                <div className="flex gap-3 md:gap-4 bg-surface-dark/90 backdrop-blur-md px-4 md:px-6 py-2 md:py-3 rounded-full border border-white/10 shadow-2xl pointer-events-auto">
-                    <button
-                        onClick={handleCenter}
-                        className="flex items-center gap-1 md:gap-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                    >
-                        <span className="material-icons text-sm md:text-base">zoom_out_map</span>
-                        <span className="hidden sm:inline">Center</span>
-                    </button>
-                    <div className="w-px bg-white/20 h-4 md:h-5 my-auto"></div>
-                    <button
-                        onClick={onSurrender}
-                        className="flex items-center gap-1 md:gap-2 text-xs md:text-sm font-medium text-slate-300 hover:text-white transition-colors"
-                    >
-                        <span className="material-icons text-sm md:text-base">flag</span>
-                        <span className="hidden sm:inline">Surrender</span>
-                    </button>
                 </div>
             </div>
         </div>
