@@ -3,7 +3,7 @@
  * Manages lobby state and real-time game list updates
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useSocket } from './useSocket';
 import { useGame } from '../context/GameContext';
 import { useGameActions } from './useGameActions';
@@ -11,6 +11,13 @@ import { SOCKET_EVENTS } from '../utils/constants';
 
 export const useGameLobby = () => {
   const { socket, on, emit, userData } = useSocket();
+  // Use Ref to access latest userData in event listeners without re-binding
+  const userDataRef = useRef(userData);
+  
+  useEffect(() => {
+    userDataRef.current = userData;
+  }, [userData]);
+
   const {
     availableGames,
     currentGame,
@@ -55,8 +62,9 @@ export const useGameLobby = () => {
         
         // Only join room if WE created it
         // Check both userData.userId and socket.id to be safe
-        const isCreator = (userData?.userId && data.game.creatorId === userData.userId) || 
-                          (socket.id && data.game.creatorId === socket.id); // Fallback if backend used socket.id (it didn't, but safety)
+        const currentUserId = userDataRef.current?.userId;
+        const isCreator = (currentUserId && data.game.creatorId === currentUserId) || 
+                          (socket.id && data.game.creatorId === socket.id); 
 
         if (isCreator) {
            console.log('👍 We created this game, joining room locally...');

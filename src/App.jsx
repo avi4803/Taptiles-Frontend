@@ -11,7 +11,8 @@ import GamePage from './pages/GamePage';
 const AppContent = () => {
   const [currentPage, setCurrentPage] = useState('loading');
   const [username, setUsername] = useState('');
-  const { on, connect } = useSocket();
+  const { on, connect, userData } = useSocket();
+
   // Restore state on load
   useEffect(() => {
     const savedState = localStorage.getItem('tapTileState');
@@ -20,8 +21,8 @@ const AppContent = () => {
         const parsed = JSON.parse(savedState);
         if (parsed.username) {
           setUsername(parsed.username);
-          // Auto-connect socket with restored username
-          connect(parsed.username);
+          // Auto-connect socket with restored username and userId
+          connect(parsed.username, parsed.userId);
         }
         // Don't auto-restore page to 'game' without verifying, but 'lobby' is safe
         if (parsed.currentPage && parsed.currentPage !== 'loading') {
@@ -36,9 +37,13 @@ const AppContent = () => {
   // Save state
   useEffect(() => {
     if (currentPage !== 'loading' && currentPage !== 'welcome') {
-      localStorage.setItem('tapTileState', JSON.stringify({ currentPage, username }));
+      localStorage.setItem('tapTileState', JSON.stringify({
+        currentPage,
+        username,
+        userId: userData?.userId
+      }));
     }
-  }, [currentPage, username]);
+  }, [currentPage, username, userData?.userId]);
 
   const handleLoadingComplete = () => {
     // If we restored state, we might not want to go to welcome?

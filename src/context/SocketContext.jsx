@@ -29,8 +29,9 @@ export const SocketProvider = ({ children }) => {
     /**
      * Connect to socket server
      * @param {string} username - User's username
+     * @param {string} [userId] - Optional user ID for session restoration
      */
-    const connect = useCallback((username) => {
+    const connect = useCallback((username, userId) => {
         if (!username || username.trim() === '') {
             setConnectionError('Username is required');
             return;
@@ -38,7 +39,7 @@ export const SocketProvider = ({ children }) => {
 
         try {
             setConnectionError(null);
-            const socketInstance = socketManager.connect(username);
+            const socketInstance = socketManager.connect(username, userId);
             setSocket(socketInstance);
 
             // Setup event listeners

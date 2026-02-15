@@ -19,7 +19,7 @@ class SocketManager {
    * @param {string} username - User's username
    * @returns {Socket} Socket instance
    */
-  connect(username) {
+  connect(username, userId) {
     // Prevent multiple connections
     if (this.socket?.connected) {
       console.log('Socket already connected');
@@ -38,7 +38,8 @@ class SocketManager {
     // Create socket connection with authentication
     this.socket = io(SOCKET_URL, {
       auth: {
-        username: username
+        username: username,
+        userId: userId
       },
       transports: ['websocket', 'polling'],
       reconnection: true,
